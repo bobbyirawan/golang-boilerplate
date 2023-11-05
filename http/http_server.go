@@ -1,6 +1,8 @@
 package http
 
 import (
+	"fmt"
+	"go-boilerplate/config"
 	"go-boilerplate/internal/controller"
 
 	"github.com/labstack/echo/v4"
@@ -8,12 +10,14 @@ import (
 )
 
 type HttpServer struct {
-	controller *controller.Holder
+	controller controller.Holder
+	env        *config.Environment
 }
 
-func NewHttpServer(controller *controller.Holder) *HttpServer {
+func NewHttpServer(controller controller.Holder, env *config.Environment) *HttpServer {
 	return &HttpServer{
 		controller: controller,
+		env:        env,
 	}
 }
 
@@ -26,6 +30,7 @@ func (s *HttpServer) Start() {
 
 	// Register routes
 	s.controller.UserController.Routes(e.Group("/user"))
+	s.controller.AuthController.Routes(e.Group("/auth"))
 
-	e.Start(":8080")
+	e.Start(fmt.Sprintf(":%s", s.env.PORT))
 }
