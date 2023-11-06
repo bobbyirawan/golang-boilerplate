@@ -2,8 +2,8 @@ package http
 
 import (
 	"fmt"
-	"go-boilerplate/config"
-	"go-boilerplate/internal/controller"
+	"go-chat/config"
+	"go-chat/internal/controller"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

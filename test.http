@@ -1,0 +1,14 @@
+===============LOGIN=================
+curl \
+--header "Content-Type: application/json" \
+--request POST \
+--data '{"email":"bobby@chat.com", "password":"rahasia"}' \
+http://localhost:3000/auth/login
+
+
+===============SIGNUP=================
+curl \
+--header "Content-Type: application/json" \
+--request POST \
+--data '{"username":"boy", "email":"bobby@chat.com", "password":"rahasia"}' \
+http://localhost:3000/auth/signup

@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"go-boilerplate/internal/service"
+	"go-chat/internal/dto"
+	"go-chat/internal/service"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,20 +19,58 @@ func NewAuthController(s service.Holder) *AuthController {
 }
 
 func (impl *AuthController) Routes(e *echo.Group) {
-	e.GET("/user/:id", impl.GetHandler)
+	e.POST("/signup", impl.SignUp)
+	e.POST("/login", impl.LogIn)
+	e.GET("/logout", impl.Logout)
 }
 
-func (impl *AuthController) GetHandler(ctx echo.Context) error {
-	userID := ctx.Param("id")
-	id, err := strconv.ParseUint(userID, 10, 64)
-	if err != nil {
-		return ctx.String(http.StatusBadRequest, "Invalid user ID")
+func (impl *AuthController) SignUp(ctx echo.Context) error {
+	auth := &dto.SignUp{}
+	if err := ctx.Bind(auth); err != nil {
+		return ctx.String(http.StatusBadRequest, "Invalid request body")
 	}
 
-	user, err := impl.service.UserService.GetUser(uint(id))
-	if err != nil {
-		return ctx.NoContent(http.StatusNotFound)
+	if err := impl.service.AuthService.SignUp(auth); err != nil {
+		return ctx.String(http.StatusInternalServerError, "Failed to create user")
 	}
 
-	return ctx.JSON(http.StatusOK, user)
+	return ctx.NoContent(http.StatusCreated)
+}
+
+func (impl *AuthController) LogIn(ctx echo.Context) error {
+	login := &dto.LoginReq{}
+	if err := ctx.Bind(login); err != nil {
+		return err
+	}
+
+	res, err := impl.service.AuthService.LogIn(login)
+	if err != nil {
+		return err
+	}
+
+	cookie := new(http.Cookie)
+	cookie.Name = "jwt"
+	cookie.Value = res.AccessToken
+	cookie.Path = "/"
+	cookie.Domain = "localhost"
+	cookie.Secure = false
+	cookie.HttpOnly = true
+	cookie.MaxAge = 3600
+	ctx.SetCookie(cookie)
+
+	return ctx.JSON(http.StatusOK, res)
+}
+
+func (impl *AuthController) Logout(ctx echo.Context) error {
+	cookie := new(http.Cookie)
+	cookie.Name = "jwt"
+	cookie.Value = ""
+	cookie.Path = ""
+	cookie.Domain = ""
+	cookie.MaxAge = -1
+	cookie.Secure = false
+	cookie.HttpOnly = true
+	ctx.SetCookie(cookie)
+
+	return ctx.String(http.StatusOK, "logout success")
 }

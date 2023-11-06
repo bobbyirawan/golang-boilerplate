@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"go-boilerplate/model"
+	"go-chat/internal/model"
 
 	"gorm.io/gorm"
 )
@@ -9,23 +9,24 @@ import (
 type (
 	UserRepository interface {
 		GetUserByID(userID uint) (*model.User, error)
+		GetUserByEmail(user *model.User) error
 		CreateUser(user *model.User) error
 		UpdateUser(user *model.User) error
 		DeleteUser(userID uint) error
 	}
 
-	userRepository struct {
+	repository struct {
 		db *gorm.DB
 	}
 )
 
 func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userRepository{
+	return &repository{
 		db: db,
 	}
 }
 
-func (impl *userRepository) GetUserByID(userID uint) (*model.User, error) {
+func (impl *repository) GetUserByID(userID uint) (*model.User, error) {
 	user := &model.User{}
 	if err := impl.db.First(user, userID).Error; err != nil {
 		return nil, err
@@ -33,21 +34,29 @@ func (impl *userRepository) GetUserByID(userID uint) (*model.User, error) {
 	return user, nil
 }
 
-func (impl *userRepository) CreateUser(user *model.User) error {
+func (impl *repository) GetUserByEmail(user *model.User) error {
+	if err := impl.db.Where("email = ?", user.Email).First(&user).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (impl *repository) CreateUser(user *model.User) error {
 	if err := impl.db.Create(user).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (impl *userRepository) UpdateUser(user *model.User) error {
+func (impl *repository) UpdateUser(user *model.User) error {
 	if err := impl.db.Save(user).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (impl *userRepository) DeleteUser(userID uint) error {
+func (impl *repository) DeleteUser(userID uint) error {
 	if err := impl.db.Delete(&model.User{}, userID).Error; err != nil {
 		return err
 	}

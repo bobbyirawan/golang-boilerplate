@@ -23,6 +23,8 @@ type Environment struct {
 	DBHost     string
 	DBName     string
 	DBMigrate  bool
+
+	SecretKey string
 }
 
 func NewEnvironment() *Environment {
@@ -57,5 +59,7 @@ func NewEnvironment() *Environment {
 		DBHost:     os.Getenv("DB_HOST"),
 		DBName:     os.Getenv("DB_NAME"),
 		DBMigrate:  dbMigrate,
+
+		SecretKey: os.Getenv("SECRET_KEY"),
 	}
 }

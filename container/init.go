@@ -1,11 +1,11 @@
 package container
 
 import (
-	"go-boilerplate/config"
-	"go-boilerplate/http"
-	"go-boilerplate/internal/controller"
-	"go-boilerplate/internal/repository"
-	"go-boilerplate/internal/service"
+	"go-chat/config"
+	"go-chat/http"
+	"go-chat/internal/controller"
+	"go-chat/internal/repository"
+	"go-chat/internal/service"
 	"log"
 
 	"go.uber.org/dig"

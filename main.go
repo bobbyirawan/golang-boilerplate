@@ -1,10 +1,10 @@
 package main
 
 import (
-	"go-boilerplate/config"
-	"go-boilerplate/container"
-	"go-boilerplate/http"
-	"go-boilerplate/model"
+	"go-chat/config"
+	"go-chat/container"
+	"go-chat/http"
+	"go-chat/internal/model"
 	"log"
 	"os"
 

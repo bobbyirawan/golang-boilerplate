@@ -1,8 +1,8 @@
 package service
 
 import (
-	"go-boilerplate/internal/repository"
-	"go-boilerplate/model"
+	"go-chat/internal/model"
+	"go-chat/internal/repository"
 )
 
 type (

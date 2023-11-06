@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"go-boilerplate/internal/service"
-	"go-boilerplate/model"
+	"go-chat/internal/model"
+	"go-chat/internal/service"
 	"net/http"
 	"strconv"
 
@@ -47,7 +47,7 @@ func (impl *UserController) CreateHandler(ctx echo.Context) error {
 		return ctx.String(http.StatusBadRequest, "Invalid request body")
 	}
 
-	if err := impl.service.UserService.CreateUser(user); err != nil {
+	if err := impl.service.UserService.CreateUser(nil); err != nil {
 		return ctx.String(http.StatusInternalServerError, "Failed to create user")
 	}
 

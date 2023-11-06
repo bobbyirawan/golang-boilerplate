@@ -2,8 +2,8 @@ package container
 
 import (
 	"fmt"
-	"go-boilerplate/config"
-	"go-boilerplate/model"
+	"go-chat/config"
+	"go-chat/internal/model"
 	"log"
 	"net"
 
