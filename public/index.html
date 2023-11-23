@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat App</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+
+      p {
+        margin: 5px 0;
+      }
+
+      .info {
+        font-style: italic;
+        color: #888;
+      }
+
+      #chatContainer {
+        width: 400px;
+        margin: 0 auto;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      #chatMessages {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+      }
+
+      #messageInput {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      #usernameInput {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      #sendButton {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      #sendButton:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+      <div id="chatContainer">
+        <h1>Chat App</h1>
+        <div id="masukkan" style="display: block;">
+            <input
+              type="text"
+              id="usernameInput"
+              placeholder="Masukkan Nama Pengguna"
+            />
+            <button onclick="connectWebSocket()">Masuk</button>
+        </div>
+        <div id="pesanMasuk" style="display: none;"">
+            <div id="chatMessages" "></div>
+            <input type="text" id="messageInput" placeholder="Ketik pesan..." />
+            <button id="sendButton" onclick="sendMessage()">Kirim</button>
+        </div>
+    </div>
+
+    <script>
+      let socket;
+      const usernameInput = document.getElementById("usernameInput");
+      const chatContainer = document.getElementById("chatContainer");
+      const chatMessages = document.getElementById("chatMessages");
+      const messageInput = document.getElementById("messageInput");
+      const sendButton = document.getElementById("sendButton");
+      const masukkan = document.getElementById("masukkan");
+      const pesanMasuk = document.getElementById("pesanMasuk");
+
+      function connectWebSocket() {
+        const username = usernameInput.value;
+        if (username.trim() === "") {
+          alert("Nama pengguna harus diisi");
+          return;
+        }
+
+        socket = new WebSocket("ws://localhost:8000/ws/ws?username=" + username);
+        socket.onopen = function () {
+            pesanMasuk.style.display = "block";
+          masukkan.style.display = "none";
+          usernameInput.disabled = true;
+          sendButton.disabled = false;
+        };
+        socket.onmessage = function (event) {
+          const data = JSON.parse(event.data);
+          const message = `${data.user}: ${data.content}`;
+          const messageDiv = document.createElement("div");
+          messageDiv.textContent = message;
+          chatMessages.appendChild(messageDiv);
+          chatMessages.scrollTop = chatMessages.scrollHeight; // Otomatis gulir ke pesan terbaru
+        };
+      }
+
+      function sendMessage() {
+        const username = usernameInput.value;
+        const message = messageInput.value;
+        if (message.trim() === "") {
+          return;
+        }
+        const data = {
+          user: username,
+          content: message,
+        };
+        socket.send(JSON.stringify(data));
+        messageInput.value = "";
+      }
+    </script>
+  </body>
+</html>

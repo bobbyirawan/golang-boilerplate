@@ -1,14 +1,18 @@
 package service
 
 import (
-	"go-chat/config"
 	"go-chat/internal/dto"
 	"go-chat/internal/model"
 	"go-chat/internal/repository"
-	"strconv"
+	"go-chat/pkg/config"
+	"go-chat/pkg/utils"
+
+	"log"
+	"net/http"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
 )
 
 type (
@@ -42,11 +46,22 @@ func (impl *service) SignUp(signUp *dto.SignUp) error {
 		Password: signUp.Password,
 	}
 
-	return impl.repository.UserRepository.CreateUser(user)
+	if err := impl.repository.UserRepository.GetUserByEmail(user); err == nil {
+		log.Println("ERROR GET USER BY EMAIL: ", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "Email has already registered")
+	}
+
+	err := impl.repository.UserRepository.CreateUser(user)
+	if err != nil {
+		log.Println("ERROR CREATE USER: ", err)
+		return err
+	}
+
+	return nil
 }
 
 type MyJWT struct {
-	ID       uint64 `json:"id"`
+	ID       string `json:"id"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
@@ -58,24 +73,27 @@ func (impl *service) LogIn(login *dto.LoginReq) (*dto.LoginRes, error) {
 	}
 
 	if err := impl.repository.UserRepository.GetUserByEmail(user); err != nil {
-		return nil, err
+		log.Println("ERROR GET USER BY EMAIL: ", err)
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Email of Password is invalid")
 	}
 
-	if err := user.CheckPassword(login.Password); err != nil {
-		return nil, err
+	if err := utils.CheckPassword(user.Password, login.Password); err != nil {
+		log.Println("ERROR CHECK PASSWORD: ", err)
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "Email of Password is invalid")
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, MyJWT{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MyJWT{
 		ID:       user.ID,
 		Username: user.Username,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    strconv.Itoa(int(user.ID)),
+			Issuer:    user.ID,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 		},
 	})
 
-	ss, err := token.SignedString([]byte(impl.config.SecretKey))
+	ss, err := token.SignedString([]byte(impl.config.SECRET_KEY))
 	if err != nil {
+		log.Println("ERROR SIGN TOKEN: ", err)
 		return nil, err
 	}
 

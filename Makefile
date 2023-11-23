@@ -2,7 +2,10 @@ hello:
 	echo "Hello, World"
 
 run:
-	go run main.go
+	go run cmd/app/main.go
 
 build: 
-	go build -o ./bin/sillChat
+	go build -o ./cmd/bin/silliChat cmd/app/main.go
+
+test:
+

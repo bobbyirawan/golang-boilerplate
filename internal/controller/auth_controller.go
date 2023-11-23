@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type AuthController struct {
@@ -19,6 +20,12 @@ func NewAuthController(s service.Holder) *AuthController {
 }
 
 func (impl *AuthController) Routes(e *echo.Group) {
+	e.GET("/", func(c echo.Context) error {
+		token := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+		return c.JSON(http.StatusOK, map[string]string{
+			"csrfToken": token,
+		})
+	})
 	e.POST("/signup", impl.SignUp)
 	e.POST("/login", impl.LogIn)
 	e.GET("/logout", impl.Logout)
@@ -31,7 +38,7 @@ func (impl *AuthController) SignUp(ctx echo.Context) error {
 	}
 
 	if err := impl.service.AuthService.SignUp(auth); err != nil {
-		return ctx.String(http.StatusInternalServerError, "Failed to create user")
+		return err
 	}
 
 	return ctx.NoContent(http.StatusCreated)

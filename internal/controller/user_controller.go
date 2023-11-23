@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"go-chat/internal/dto"
 	"go-chat/internal/model"
 	"go-chat/internal/service"
 	"net/http"
@@ -20,25 +21,27 @@ func NewUserController(service service.Holder) *UserController {
 }
 
 func (impl *UserController) Routes(e *echo.Group) {
-	e.GET("/user/:id", impl.GetHandler)
+	e.GET("/user/:user_id", impl.GetHandler)
 	e.POST("/user", impl.CreateHandler)
 	e.PUT("/user/:id", impl.UpdateHandler)
 	e.DELETE("/user/:id", impl.DeleteHandler)
 }
 
 func (impl *UserController) GetHandler(ctx echo.Context) error {
-	userID := ctx.Param("id")
-	id, err := strconv.ParseUint(userID, 10, 64)
-	if err != nil {
-		return ctx.String(http.StatusBadRequest, "Invalid user ID")
+	var (
+		req = new(dto.GetUserByIDReq)
+		res = new(dto.GetUserByIDRes)
+	)
+
+	if err := ctx.Bind(req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "invalid request")
 	}
 
-	user, err := impl.service.UserService.GetUser(uint(id))
-	if err != nil {
-		return ctx.NoContent(http.StatusNotFound)
+	if err := impl.service.UserService.GetUser(req, res); err != nil {
+		return err
 	}
 
-	return ctx.JSON(http.StatusOK, user)
+	return ctx.JSON(http.StatusOK, res)
 }
 
 func (impl *UserController) CreateHandler(ctx echo.Context) error {
@@ -55,28 +58,28 @@ func (impl *UserController) CreateHandler(ctx echo.Context) error {
 }
 
 func (impl *UserController) UpdateHandler(ctx echo.Context) error {
-	userID := ctx.Param("id")
-	id, err := strconv.ParseUint(userID, 10, 64)
-	if err != nil {
-		return ctx.String(http.StatusBadRequest, "Invalid user ID")
-	}
+	// userID := ctx.Param("id")
+	// id, err := strconv.ParseUint(userID, 10, 64)
+	// if err != nil {
+	// 	return ctx.String(http.StatusBadRequest, "Invalid user ID")
+	// }
 
-	user, err := impl.service.UserService.GetUser(uint(id))
-	if err != nil {
-		return ctx.NoContent(http.StatusNotFound)
-	}
+	// user, err := impl.service.UserService.GetUser(uint(id))
+	// if err != nil {
+	// 	return ctx.NoContent(http.StatusNotFound)
+	// }
 
-	updatedUser := new(model.User)
-	if err := ctx.Bind(updatedUser); err != nil {
-		return ctx.String(http.StatusBadRequest, "Invalid request body")
-	}
+	// updatedUser := new(model.User)
+	// if err := ctx.Bind(updatedUser); err != nil {
+	// 	return ctx.String(http.StatusBadRequest, "Invalid request body")
+	// }
 
-	user.Username = updatedUser.Username
-	user.Email = updatedUser.Email
+	// user.Username = updatedUser.Username
+	// user.Email = updatedUser.Email
 
-	if err := impl.service.UserService.UpdateUser(user); err != nil {
-		return ctx.String(http.StatusInternalServerError, "Failed to update user")
-	}
+	// if err := impl.service.UserService.UpdateUser(user); err != nil {
+	// 	return ctx.String(http.StatusInternalServerError, "Failed to update user")
+	// }
 
 	return ctx.NoContent(http.StatusOK)
 }
